@@ -43,3 +43,5 @@
   CONFLICT keeps A1 class (ALLOW+flag). STRONG impossible while a1_shap=[].
 - 12:15 a1: saved models/a1_lgbm.joblib (trained once, 206s); --no-shap sets a1_shap=[].
   Eval acc 1.0000 calibrated and raw. Loaded from disk from here on.
+- 12:16 pipeline: loads saved A1/A2, fuses, writes outputs/eval_results.parquet; 12,803 flows/s.
+  Status: CORROBORATED 59,283, CLASSIFIER_ONLY 53,217, ANOMALY_ONLY 1,685.
