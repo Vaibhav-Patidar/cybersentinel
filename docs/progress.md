@@ -29,3 +29,5 @@
   Next: eval row-count/order test.
 - 11:27 prep: check_eval asserts rows/record_id order/labels unchanged; runs every prep.
   Phase 2 done: 432,605 train / 114,185 eval, 71 float32 features. Next: Phase 3 A1.
+- 11:30 a1: ThreatDetector(Agent) LightGBM 300 trees, class_weight=balanced; 45s on full train.
+  Next: predict conf + top-2.

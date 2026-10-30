@@ -24,7 +24,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `test(prep): assert eval row count and record_id order unchanged`
 
 ## Phase 3 | A1 Threat Detector (5:00–5:40)
-- [ ] `feat(a1): train LightGBM multiclass with balanced class weights`
+- [x] `feat(a1): train LightGBM multiclass with balanced class weights`
 - [ ] `feat(a1): predict class, confidence, top-2 class and prob`
 - [ ] `feat(a1): add isotonic calibration of probabilities`
 - [ ] `feat(a1): add top-3 SHAP features per flow`
