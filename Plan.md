@@ -51,7 +51,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `feat(scripts): add leave-one-attack-out experiment (loao.py)`
 
 ## Phase 7 | Final Run + Submission (6:45–7:30)
-- [ ] `chore: run final pipeline on official eval, save outputs/metrics.json`
+- [x] `chore: run final pipeline on official eval, save outputs/metrics.json`
 - [ ] `feat(submit): build API payload from metrics.json`
 - [ ] `chore: submit Level 1 results, save API response`
 - [ ] `docs: add Level 1 results summary to README`
