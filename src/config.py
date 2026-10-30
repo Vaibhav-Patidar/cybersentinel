@@ -30,6 +30,11 @@ DISAGREEMENT_REPORT = OUTPUTS_DIR / "disagreement_report.json"
 CONFUSION_A1_PNG = OUTPUTS_DIR / "confusion_a1.png"
 CONFUSION_FUSED_PNG = OUTPUTS_DIR / "confusion_fused.png"
 RELIABILITY_PNG = OUTPUTS_DIR / "reliability.png"
+SUBMISSION_PAYLOAD = OUTPUTS_DIR / "submission_payload.json"
+SUBMISSION_RESPONSE = OUTPUTS_DIR / "submission_response.json"
+DASHBOARD_HTML = OUTPUTS_DIR / "dashboard.html"
+PPT_DIR = OUTPUTS_DIR / "ppt"
+POLICY_RESULTS = OUTPUTS_DIR / "policy_results.parquet"
 
 # docs
 DOCS_DIR = ROOT / "docs"
