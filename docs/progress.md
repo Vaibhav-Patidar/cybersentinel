@@ -3,3 +3,5 @@
   Next: config.py and base Agent.
 - 10:42 config.py: all paths, CLASSES, RANDOM_STATE, ID/LABEL cols.
   Next: base Agent.
+- 10:42 base.Agent: abstract fit/predict, joblib save/load.
+  Phase 0 done. Next: Phase 1 inspect.py.
