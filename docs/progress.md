@@ -19,3 +19,5 @@
 - Decided: decisions from train only; same 7 cols dropped on eval/hidden.
 - 11:18 Phase 1 done: findings recorded above.
   Next: Phase 2 prep.
+- 11:25 prep: load() reads parquet + strips column names.
+  Next: inf->NaN + train medians.
