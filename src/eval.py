@@ -7,17 +7,22 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_fscore_support, roc_auc_score
 
 from src.config import (BENIGN, CLASSES, CONFUSION_A1_PNG, CONFUSION_FUSED_PNG, EVAL_CLEAN, EVAL_RESULTS, ID_COL,
                         LABEL_COL, METRICS, PIPELINE_STATS, PREP_STATS, TRAIN_CLEAN)
 
 
 def scores(y: np.ndarray, pred: np.ndarray) -> dict:
-    per = f1_score(y, pred, labels=CLASSES, average=None, zero_division=0)
+    p, r, f, _ = precision_recall_fscore_support(y, pred, labels=CLASSES, average=None, zero_division=0)
+    per = lambda v: {c: round(float(x), 6) for c, x in zip(CLASSES, v)}
     return {"accuracy": round(accuracy_score(y, pred), 6),
-            "macro_f1": round(f1_score(y, pred, labels=CLASSES, average="macro", zero_division=0), 6),
-            "per_class_f1": {c: round(float(f), 6) for c, f in zip(CLASSES, per)}}
+            "macro_precision": round(float(p.mean()), 6),
+            "macro_recall": round(float(r.mean()), 6),
+            "macro_f1": round(float(f.mean()), 6),
+            "per_class_precision": per(p),
+            "per_class_recall": per(r),
+            "per_class_f1": per(f)}
 
 
 def block(r: pd.DataFrame) -> dict:
