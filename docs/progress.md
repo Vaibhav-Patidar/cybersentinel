@@ -51,3 +51,5 @@
   Existing models re-saved under src.agents.* (no retrain).
 - 12:21 a3 --tune: 150 configs (conf_t x top2_t x anomaly pct) on train cal slice (64,891 rows), never eval. 35s.
   Flat: all 150 give macro-F1 1.0 -> tie-break keeps defaults 0.8/0.3/97pct. Pipeline loads fusion_config.json.
+- 12:22 eval: confusion_a1.png / confusion_fused.png + matrices in metrics.json; status & evidence counts per class.
+  Only errors: 2 PORT_SCAN -> BENIGN. A2 corroborates 960/24,000 DOS, ~0 of other attacks.

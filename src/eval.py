@@ -2,11 +2,15 @@
 import argparse
 import json
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_auc_score
 
-from src.config import BENIGN, CLASSES, EVAL_CLEAN, EVAL_RESULTS, ID_COL, LABEL_COL, METRICS, PREP_STATS, TRAIN_CLEAN
+from src.config import (BENIGN, CLASSES, CONFUSION_A1_PNG, CONFUSION_FUSED_PNG, EVAL_CLEAN, EVAL_RESULTS, ID_COL,
+                        LABEL_COL, METRICS, PREP_STATS, TRAIN_CLEAN)
 
 
 def scores(y: np.ndarray, pred: np.ndarray) -> dict:
@@ -28,6 +32,25 @@ def block(r: pd.DataFrame) -> dict:
         "override_correct": int((over & (fused == y)).sum()),
         "override_broke_correct_a1": int((over & (a1 == y)).sum()),
     }
+
+
+def plot_confusion(y: np.ndarray, pred: np.ndarray, title: str, path) -> list[list[int]]:
+    cm = confusion_matrix(y, pred, labels=CLASSES)
+    norm = cm / np.maximum(cm.sum(1, keepdims=True), 1)
+    fig, ax = plt.subplots(figsize=(6.5, 5.5))
+    ax.imshow(norm, cmap="Blues", vmin=0, vmax=1)
+    for i, j in np.ndindex(cm.shape):
+        ax.text(j, i, f"{cm[i, j]:,}", ha="center", va="center", fontsize=9,
+                color="white" if norm[i, j] > 0.5 else "black")
+    ax.set_xticks(range(len(CLASSES)), CLASSES, rotation=30, ha="right")
+    ax.set_yticks(range(len(CLASSES)), CLASSES)
+    ax.set_xlabel("predicted")
+    ax.set_ylabel("true")
+    ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig(path, dpi=120)
+    plt.close(fig)
+    return cm.tolist()
 
 
 def unseen_mask(results: pd.DataFrame) -> np.ndarray:
@@ -53,9 +76,16 @@ def main() -> None:
     metrics = {
         "all": block(r),
         "unseen_in_train": block(r[unseen]),
+        "confusion": {
+            "labels": CLASSES,
+            "a1": plot_confusion(r[LABEL_COL], r["a1_class"], "A1 alone", CONFUSION_A1_PNG),
+            "fused": plot_confusion(r[LABEL_COL], r["final_class"], "Fused (A3)", CONFUSION_FUSED_PNG),
+        },
         "status_counts": r["status"].value_counts().to_dict(),
         "evidence_strength_counts": r["evidence_strength"].value_counts().to_dict(),
         "policy_counts": r["policy"].value_counts().to_dict(),
+        "status_by_class": pd.crosstab(r[LABEL_COL], r["status"]).to_dict(orient="index"),
+        "evidence_strength_by_class": pd.crosstab(r[LABEL_COL], r["evidence_strength"]).to_dict(orient="index"),
         "a2": {"roc_auc_attack_vs_benign": round(float(roc_auc_score(y_attack, r["a2_score"])), 6),
                "flag_rate_per_class": {k: round(float(v), 6) for k, v in
                                        r["a2_anomalous"].groupby(r[LABEL_COL]).mean().items()}},

@@ -46,7 +46,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 ## Phase 6 | Pipeline + Evaluation (6:15–6:45)
 - [x] `feat(pipeline): run A1 + A2 + A3 end to end, pass extra columns through`
 - [x] `feat(eval): accuracy, macro-F1, per-class F1 for A1 vs fused`
-- [ ] `feat(eval): confusion matrices, status and evidence counts`
+- [x] `feat(eval): confusion matrices, status and evidence counts`
 - [ ] `feat(eval): override count/accuracy, A2 AUC, throughput`
 - [ ] `feat(scripts): add leave-one-attack-out experiment (loao.py)`
 
