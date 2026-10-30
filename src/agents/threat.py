@@ -13,12 +13,13 @@ from src.agents.base import Agent
 from src.config import A1_MODEL, CLASSES, EVAL_CLEAN, ID_COL, LABEL_COL, PREP_STATS, RANDOM_STATE, TRAIN_CLEAN
 
 CAL_FRAC = 0.15
+Z_CAP = 10.0  # cap robust z so near-constant features can't dominate
 
 PARAMS = dict(
     objective="multiclass",
-    n_estimators=300,
+    n_estimators=100,
     learning_rate=0.1,
-    num_leaves=63,
+    num_leaves=31,
     class_weight="balanced",
     subsample=0.8,
     subsample_freq=1,
@@ -46,6 +47,13 @@ class ThreatDetector(Agent):
         fit_idx, cal_idx = train_test_split(np.arange(len(df)), test_size=CAL_FRAC,
                                             stratify=y, random_state=RANDOM_STATE)
         self.model.fit(df[self.features].iloc[fit_idx], y[fit_idx])
+        gain = self.model.booster_.feature_importance("gain")
+        self.gain = (gain / gain.sum()).astype(np.float32)
+        x = df[self.features]
+        self.median = x.median().to_numpy(np.float32)
+        iqr = (x.quantile(0.75) - x.quantile(0.25)).to_numpy(np.float32)
+        std = x.std().to_numpy(np.float32)
+        self.iqr = np.where(iqr > 0, iqr, np.where(std > 0, std, 1)).astype(np.float32)
         raw = self.model.predict_proba(df[self.features].iloc[cal_idx])
         self.calibrators = [
             IsotonicRegression(out_of_bounds="clip", y_min=0, y_max=1).fit(raw[:, k], y[cal_idx] == k)
@@ -61,6 +69,13 @@ class ThreatDetector(Agent):
         s = p.sum(1, keepdims=True)
         return np.divide(p, s, out=np.full_like(p, 1 / p.shape[1]), where=s > 0)
 
+    def shap_top3(self, df: pd.DataFrame) -> list[list]:
+        """Fallback for TreeSHAP (too slow): gain importance x |robust deviation from train median|."""
+        x = df[self.features].to_numpy(dtype=np.float32)
+        score = self.gain * np.minimum(np.abs(x - self.median) / self.iqr, Z_CAP)
+        top = np.argsort(-score, axis=1)[:, :3]
+        return [[[self.features[j], round(float(row[j]), 4)] for j in t] for row, t in zip(score, top)]
+
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.predict_proba(df)
         # isotonic clips many probs to exactly 0; break ties with raw model scores
@@ -74,6 +89,7 @@ class ThreatDetector(Agent):
             "a1_conf": p[rows, order[:, 0]].astype(np.float32),
             "a1_top2": names[order[:, 1]],
             "a1_top2_prob": p[rows, order[:, 1]].astype(np.float32),
+            "a1_shap": self.shap_top3(df),
         })
 
 
@@ -93,7 +109,10 @@ def train() -> ThreatDetector:
         ece = sum(abs(acc[bins == b].mean() - conf[bins == b].mean()) * (bins == b).mean()
                   for b in range(10) if (bins == b).any())
         print(f"calibrated={cal}: ECE={ece:.4f}, acc={acc.mean():.4f}, conf<0.9: {(conf < 0.9).mean():.2%}")
-    print(a1.predict(ev).head().to_string())
+    t = time.time()
+    out = a1.predict(ev)
+    print(f"predict+evidence on {len(ev)} rows: {time.time() - t:.1f}s")
+    print(out.groupby("a1_class").head(1).to_string())
     return a1
 
 

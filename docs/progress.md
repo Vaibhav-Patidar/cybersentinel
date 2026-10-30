@@ -35,3 +35,5 @@
   Raw LGBM probs saturate near 1.0 -> calibration next.
 - 11:34 a1: one-vs-rest isotonic on 15% stratified train holdout; top-2 ties broken by raw probs.
   Eval acc 1.0000 (2 errors on unseen rows, no id overlap); ECE ~0 both ways. Destination Port = top feature.
+- 12:11 a1: TreeSHAP too slow on loaded box (load ~11; ~1.5ms/row). Fallback: gain importance x capped robust z, top-3 per flow, 2.4s on eval.
+  Model cut to 100 trees/31 leaves; eval acc still 1.0000. Next: save model + baseline report.

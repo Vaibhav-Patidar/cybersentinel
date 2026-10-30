@@ -27,7 +27,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `feat(a1): train LightGBM multiclass with balanced class weights`
 - [x] `feat(a1): predict class, confidence, top-2 class and prob`
 - [x] `feat(a1): add isotonic calibration of probabilities`
-- [ ] `feat(a1): add top-3 SHAP features per flow`
+- [x] `feat(a1): add top-3 SHAP features per flow` (fallback used, see fix commit)
 - [ ] `feat(a1): save model and report baseline accuracy + macro-F1`
 
 ## Phase 4 | A2 Anomaly Agent (5:00–5:40, parallel with Phase 3)
