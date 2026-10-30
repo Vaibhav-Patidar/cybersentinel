@@ -63,8 +63,11 @@ python -m src.submit
 ## Data + prep rules
 - Columns: record_id, 78 numeric flow features, label. Labels are ALREADY the 5 classes.
 - record_id: keep for joins and output, NEVER a feature.
-- Train/eval have no IPs/ports/protocol/seq. Hidden set adds source_ip, destination_ip, ports,
-  protocol, seq for replay policy matching. Models use ONLY the 78 flow features.
+- Train/eval have no endpoint metadata (source_ip, destination_ip, protocol, seq).
+  `Destination Port` IS one of the 78 flow features and is used by the models.
+- Hidden set adds endpoint metadata (source_ip, destination_ip, ports, protocol, seq) for replay
+  policy matching. Models use ONLY the flow features; metadata is passed through for the policy.
+- Destination Port is A1's top feature (possible shortcut). Port ablation is an optional robustness check.
 - Strip column names. inf -> NaN -> median. Medians from TRAIN only, saved in prep_stats.json.
 - Drop constant and duplicate columns. Cast to float32. Feature list saved and reused.
 - Dedupe TRAIN only. Never drop, reorder, or dedupe eval/hidden rows.
@@ -84,6 +87,9 @@ A3 Evidence Fusion (rule-based):
   status in CORROBORATED | CLASSIFIER_ONLY | ANOMALY_ONLY | CONFLICT | TIEBREAK
   evidence_strength in STRONG | MODERATE | WEAK  (STRONG = A1 SHAP and A2 evidence share a feature)
   policy in ALLOW | BLOCK | REVIEW
+Policy Agent (stub, stateful per source_ip replay over A3 verdicts, src/agents/policy.py):
+  replay_action (ALLOW | BLOCK | REVIEW), replay_reason, ip_strikes
+  IP blocklisted after 3 BLOCK verdicts in its last 20 flows; no source_ip -> A3 policy passes through
 
 ## Fusion table
 - attack hi-conf + anomalous  -> CORROBORATED,    A1 class, BLOCK
