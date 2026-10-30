@@ -20,7 +20,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `feat(prep): load train/eval parquet and strip column names`
 - [x] `feat(prep): replace inf with NaN and impute train medians`
 - [x] `feat(prep): drop constant and duplicate columns, cast float32`
-- [ ] `feat(prep): dedupe train only, save processed parquet + prep_stats.json`
+- [x] `feat(prep): dedupe train only, save processed parquet + prep_stats.json`
 - [ ] `test(prep): assert eval row count and record_id order unchanged`
 
 ## Phase 3 | A1 Threat Detector (5:00–5:40)

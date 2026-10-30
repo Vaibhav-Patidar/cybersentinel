@@ -25,3 +25,5 @@
   Next: drop const/dup cols, float32.
 - 11:26 prep: constant/duplicate cols found on train, dropped everywhere; float32.
   Next: dedupe train, save parquet + prep_stats.json.
+- 11:26 prep: train deduped on features+label; saves train/eval_clean.parquet + prep_stats.json.
+  Next: eval row-count/order test.

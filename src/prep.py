@@ -1,8 +1,11 @@
 """Cleaning: train stats fitted once, applied identically to eval/hidden."""
+import json
+
 import numpy as np
 import pandas as pd
 
-from src.config import EVAL_RAW, ID_COL, LABEL_COL, TRAIN_RAW
+from src.config import (EVAL_CLEAN, EVAL_RAW, ID_COL, LABEL_COL, MODELS_DIR, PREP_STATS,
+                        PROCESSED_DIR, TRAIN_CLEAN, TRAIN_RAW)
 
 # hidden set adds these for replay; passed through untouched, never features
 PASSTHROUGH = ["source_ip", "destination_ip", "source_port", "destination_port", "protocol", "seq"]
@@ -57,11 +60,27 @@ def transform(df: pd.DataFrame, stats: dict) -> pd.DataFrame:
     return pd.concat([df[keep], x, df[tail]], axis=1)
 
 
+def dedupe_train(train: pd.DataFrame, stats: dict) -> pd.DataFrame:
+    before = len(train)
+    train = train.drop_duplicates(subset=stats["features"] + [LABEL_COL]).reset_index(drop=True)
+    stats["train_rows_raw"], stats["train_rows_deduped"] = before, len(train)
+    return train
+
+
 def main() -> None:
     train, ev = load(TRAIN_RAW), load(EVAL_RAW)
     stats = fit_stats(train)
-    train, ev = transform(train, stats), transform(ev, stats)
+    train = dedupe_train(transform(train, stats), stats)  # TRAIN only
+    ev = transform(ev, stats)
+
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    train.to_parquet(TRAIN_CLEAN, index=False)
+    ev.to_parquet(EVAL_CLEAN, index=False)
+    PREP_STATS.write_text(json.dumps(stats, indent=2))
+
     print(f"constant: {stats['constant']}\nduplicate: {stats['duplicate']}")
+    print(f"train dedupe: {stats['train_rows_raw']} -> {stats['train_rows_deduped']}")
     for name, df in (("train", train), ("eval", ev)):
         x = df[stats["features"]]
         print(f"{name}: {df.shape}, features={x.shape[1]}, NaN={int(x.isna().sum().sum())}, "
