@@ -13,7 +13,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `feat(agents): add base Agent interface with fit/predict`
 
 ## Phase 1 | Data Inspection (4:25–4:35)
-- [ ] `feat(scripts): add inspect.py for shape, labels, inf/NaN, dupes, constant cols`
+- [x] `feat(scripts): add inspect.py for shape, labels, inf/NaN, dupes, constant cols`
 - [ ] `docs: record dataset inspection findings in progress.md`
 
 ## Phase 2 | Preprocessing (4:35–5:00)
