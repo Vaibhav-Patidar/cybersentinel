@@ -78,4 +78,6 @@ if __name__ == "__main__":
     ap.add_argument("--train", action="store_true")
     args = ap.parse_args()
     if args.train:
+        # import from the real module so pickles reference src.agents.anomaly, not __main__
+        from src.agents.anomaly import train
         train()

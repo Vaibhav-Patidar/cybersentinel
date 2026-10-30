@@ -124,4 +124,6 @@ if __name__ == "__main__":
     ap.add_argument("--no-shap", action="store_true", help="a1_shap = [] (skip per-flow evidence)")
     args = ap.parse_args()
     if args.train:
+        # import from the real module so pickles reference src.agents.threat, not __main__
+        from src.agents.threat import train
         train(shap=not args.no_shap)
