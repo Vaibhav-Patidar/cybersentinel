@@ -37,10 +37,10 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `feat(a2): save model + baseline, report ROC-AUC and per-class flag rate`
 
 ## Phase 5 | A3 Evidence Fusion (5:40–6:15)
-- [ ] `feat(a3): implement fusion decision table with status labels`
-- [ ] `feat(a3): add evidence_strength from A1/A2 feature overlap`
-- [ ] `feat(a3): map status to ALLOW/BLOCK/REVIEW policy`
-- [ ] `feat(a3): add templated per-flow rationale`
+- [x] `feat(a3): implement fusion decision table with status labels`
+- [x] `feat(a3): add evidence_strength from A1/A2 feature overlap`
+- [x] `feat(a3): map status to ALLOW/BLOCK/REVIEW policy`
+- [x] `feat(a3): add templated per-flow rationale`
 - [ ] `feat(a3): grid-search thresholds for macro-F1, save fusion_config.json`
 
 ## Phase 6 | Pipeline + Evaluation (6:15–6:45)
