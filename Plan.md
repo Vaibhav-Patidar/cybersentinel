@@ -14,7 +14,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 
 ## Phase 1 | Data Inspection (4:25–4:35)
 - [x] `feat(scripts): add inspect.py for shape, labels, inf/NaN, dupes, constant cols`
-- [ ] `docs: record dataset inspection findings in progress.md`
+- [x] `docs: record dataset inspection findings in progress.md`
 
 ## Phase 2 | Preprocessing (4:35–5:00)
 - [ ] `feat(prep): load train/eval parquet and strip column names`
