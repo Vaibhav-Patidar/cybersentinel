@@ -55,3 +55,5 @@
   Only errors: 2 PORT_SCAN -> BENIGN. A2 corroborates 960/24,000 DOS, ~0 of other attacks.
 - 12:23 eval: override_accuracy added; pipeline writes pipeline_stats.json, eval folds it into metrics.json.
   Throughput 26,334 flows/s (no-shap). A2 AUC 0.897. Overrides still 0.
+- 12:23 loao: unseen-class detect rate A1/fused: BF 0.0/0.0, DOS 0.0003/0.0003, DDOS 0.621/0.621, PS 0.0006/0.0006.
+  A2 flags 4% of unseen DOS (-> REVIEW), ~0 else. Fusion does not rescue unseen attacks. A1 now handles absent classes.

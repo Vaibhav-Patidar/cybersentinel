@@ -54,15 +54,21 @@ class ThreatDetector(Agent):
         iqr = (x.quantile(0.75) - x.quantile(0.25)).to_numpy(np.float32)
         std = x.std().to_numpy(np.float32)
         self.iqr = np.where(iqr > 0, iqr, np.where(std > 0, std, 1)).astype(np.float32)
-        raw = self.model.predict_proba(df[self.features].iloc[cal_idx])
+        raw = self._raw_proba(df.iloc[cal_idx])
         self.calibrators = [
             IsotonicRegression(out_of_bounds="clip", y_min=0, y_max=1).fit(raw[:, k], y[cal_idx] == k)
             for k in range(len(CLASSES))
         ]
         return self
 
+    def _raw_proba(self, df: pd.DataFrame) -> np.ndarray:
+        # always 5 columns in CLASSES order, even if a class was absent from training (LOAO)
+        p = np.zeros((len(df), len(CLASSES)))
+        p[:, self.model.classes_] = self.model.predict_proba(df[self.features])
+        return p
+
     def predict_proba(self, df: pd.DataFrame, calibrated: bool = True) -> np.ndarray:
-        p = self.model.predict_proba(df[self.features])
+        p = self._raw_proba(df)
         if not calibrated or not self.calibrators:
             return p
         p = np.column_stack([c.predict(p[:, k]) for k, c in enumerate(self.calibrators)])
