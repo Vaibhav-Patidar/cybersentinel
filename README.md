@@ -143,8 +143,7 @@ cybersentinel/
 │   └── eval.py            # A1-only vs fused metrics
 ├── scripts/inspect.py     # dataset inspection
 ├── models/                # saved agents + stats (gitignored)
-├── outputs/               # results + metrics (gitignored)
-└── docs/progress.md       # build log
+└── outputs/               # results + metrics (gitignored)
 ```
 
 ## 🔬 Findings so far
