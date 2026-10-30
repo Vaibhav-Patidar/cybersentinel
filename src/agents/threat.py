@@ -76,7 +76,7 @@ class ThreatDetector(Agent):
         top = np.argsort(-score, axis=1)[:, :3]
         return [[[self.features[j], round(float(row[j]), 4)] for j in t] for row, t in zip(score, top)]
 
-    def predict(self, df: pd.DataFrame) -> pd.DataFrame:
+    def predict(self, df: pd.DataFrame, shap: bool = True) -> pd.DataFrame:
         p = self.predict_proba(df)
         # isotonic clips many probs to exactly 0; break ties with raw model scores
         raw = self.predict_proba(df, calibrated=False)
@@ -89,15 +89,17 @@ class ThreatDetector(Agent):
             "a1_conf": p[rows, order[:, 0]].astype(np.float32),
             "a1_top2": names[order[:, 1]],
             "a1_top2_prob": p[rows, order[:, 1]].astype(np.float32),
-            "a1_shap": self.shap_top3(df),
+            "a1_shap": self.shap_top3(df) if shap else [[] for _ in range(len(df))],
         })
 
 
-def train() -> ThreatDetector:
+def train(shap: bool = True) -> ThreatDetector:
     df = pd.read_parquet(TRAIN_CLEAN)
     t = time.time()
     a1 = ThreatDetector().fit(df)
     print(f"trained on {len(df)} rows, {len(a1.features)} features in {time.time() - t:.0f}s")
+    a1.save(A1_MODEL)
+    print(f"saved {A1_MODEL}")
     ev = pd.read_parquet(EVAL_CLEAN)
     y = a1._y(ev)
     for cal in (False, True):
@@ -110,7 +112,7 @@ def train() -> ThreatDetector:
                   for b in range(10) if (bins == b).any())
         print(f"calibrated={cal}: ECE={ece:.4f}, acc={acc.mean():.4f}, conf<0.9: {(conf < 0.9).mean():.2%}")
     t = time.time()
-    out = a1.predict(ev)
+    out = a1.predict(ev, shap=shap)
     print(f"predict+evidence on {len(ev)} rows: {time.time() - t:.1f}s")
     print(out.groupby("a1_class").head(1).to_string())
     return a1
@@ -119,6 +121,7 @@ def train() -> ThreatDetector:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--train", action="store_true")
+    ap.add_argument("--no-shap", action="store_true", help="a1_shap = [] (skip per-flow evidence)")
     args = ap.parse_args()
     if args.train:
-        train()
+        train(shap=not args.no_shap)

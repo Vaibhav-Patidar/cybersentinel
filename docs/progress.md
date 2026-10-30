@@ -41,3 +41,5 @@
   Flag rate: BENIGN 2.8%, DOS 4.0%, BF 0.07%, DDOS 0.03%, PS 0%. Time-boxed: 4 A2 boxes in 1 commit.
 - 12:13 a3: CLAUDE.md fusion table, fixed conf=0.8, top2 switch t=0.3, anomaly = A2 97pct flag. No grid search.
   CONFLICT keeps A1 class (ALLOW+flag). STRONG impossible while a1_shap=[].
+- 12:15 a1: saved models/a1_lgbm.joblib (trained once, 206s); --no-shap sets a1_shap=[].
+  Eval acc 1.0000 calibrated and raw. Loaded from disk from here on.
