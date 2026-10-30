@@ -45,3 +45,5 @@
   Eval acc 1.0000 calibrated and raw. Loaded from disk from here on.
 - 12:16 pipeline: loads saved A1/A2, fuses, writes outputs/eval_results.parquet; 12,803 flows/s.
   Status: CORROBORATED 59,283, CLASSIFIER_ONLY 53,217, ANOMALY_ONLY 1,685.
+- 12:16 eval: macro-F1 A1 0.999983 = fused 0.999983 (all); 0.999974 both on 104,390 unseen rows.
+  0 overrides: all 1,685 ANOMALY_ONLY flows stayed BENIGN (top-2 prob 0 < 0.3). Fusion adds nothing on eval yet.
