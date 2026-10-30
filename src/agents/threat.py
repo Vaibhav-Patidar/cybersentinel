@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from src.agents.base import Agent
-from src.config import A1_MODEL, CLASSES, ID_COL, LABEL_COL, PREP_STATS, RANDOM_STATE, TRAIN_CLEAN
+from src.config import A1_MODEL, CLASSES, EVAL_CLEAN, ID_COL, LABEL_COL, PREP_STATS, RANDOM_STATE, TRAIN_CLEAN
 
 PARAMS = dict(
     objective="multiclass",
@@ -44,8 +44,16 @@ class ThreatDetector(Agent):
 
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.predict_proba(df)
-        return pd.DataFrame({ID_COL: df[ID_COL].to_numpy(),
-                             "a1_class": np.array(CLASSES)[p.argmax(1)]})
+        order = np.argsort(-p, axis=1)
+        rows = np.arange(len(p))
+        names = np.array(CLASSES)
+        return pd.DataFrame({
+            ID_COL: df[ID_COL].to_numpy(),
+            "a1_class": names[order[:, 0]],
+            "a1_conf": p[rows, order[:, 0]].astype(np.float32),
+            "a1_top2": names[order[:, 1]],
+            "a1_top2_prob": p[rows, order[:, 1]].astype(np.float32),
+        })
 
 
 def train() -> ThreatDetector:
@@ -53,6 +61,8 @@ def train() -> ThreatDetector:
     t = time.time()
     a1 = ThreatDetector().fit(df)
     print(f"trained on {len(df)} rows, {len(a1.features)} features in {time.time() - t:.0f}s")
+    ev = pd.read_parquet(EVAL_CLEAN)
+    print(a1.predict(ev).head().to_string())
     return a1
 
 

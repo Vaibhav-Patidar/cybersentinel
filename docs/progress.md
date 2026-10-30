@@ -31,3 +31,5 @@
   Phase 2 done: 432,605 train / 114,185 eval, 71 float32 features. Next: Phase 3 A1.
 - 11:30 a1: ThreatDetector(Agent) LightGBM 300 trees, class_weight=balanced; 45s on full train.
   Next: predict conf + top-2.
+- 11:31 a1: predict -> record_id, a1_class, a1_conf, a1_top2, a1_top2_prob.
+  Raw LGBM probs saturate near 1.0 -> calibration next.
