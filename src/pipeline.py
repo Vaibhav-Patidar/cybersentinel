@@ -8,7 +8,7 @@ import pandas as pd
 from src.agents.anomaly import AnomalyAgent
 from src.agents.fusion import EvidenceFusion
 from src.agents.threat import ThreatDetector
-from src.config import A1_MODEL, A2_MODEL, EVAL_CLEAN, EVAL_RESULTS, ID_COL, LABEL_COL
+from src.config import A1_MODEL, A2_MODEL, EVAL_CLEAN, EVAL_RESULTS, ID_COL, LABEL_COL, PIPELINE_STATS
 from src.prep import PASSTHROUGH
 
 LIST_COLS = ["a1_shap", "a2_evidence"]  # mixed [str, float] pairs -> JSON strings in parquet
@@ -41,6 +41,9 @@ def main() -> None:
     for c in LIST_COLS:
         out[c] = out[c].map(json.dumps)
     out.to_parquet(args.out, index=False)
+    PIPELINE_STATS.write_text(json.dumps({
+        "input": args.input, "rows": len(out), "seconds": round(dt, 3),
+        "flows_per_sec": round(len(out) / dt, 1), "shap": not args.no_shap}, indent=2))
     print(f"{len(out)} rows in {dt:.1f}s ({len(out) / dt:,.0f} flows/s) -> {args.out}")
     print(out["status"].value_counts().to_dict())
 

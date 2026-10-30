@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_auc_score
 
 from src.config import (BENIGN, CLASSES, CONFUSION_A1_PNG, CONFUSION_FUSED_PNG, EVAL_CLEAN, EVAL_RESULTS, ID_COL,
-                        LABEL_COL, METRICS, PREP_STATS, TRAIN_CLEAN)
+                        LABEL_COL, METRICS, PIPELINE_STATS, PREP_STATS, TRAIN_CLEAN)
 
 
 def scores(y: np.ndarray, pred: np.ndarray) -> dict:
@@ -30,6 +30,7 @@ def block(r: pd.DataFrame) -> dict:
         "agreement_rate": round(float((~over).mean()), 6),
         "override_count": int(over.sum()),
         "override_correct": int((over & (fused == y)).sum()),
+        "override_accuracy": round(float((fused[over] == y[over]).mean()), 6) if over.any() else None,
         "override_broke_correct_a1": int((over & (a1 == y)).sum()),
     }
 
@@ -90,6 +91,8 @@ def main() -> None:
                "flag_rate_per_class": {k: round(float(v), 6) for k, v in
                                        r["a2_anomalous"].groupby(r[LABEL_COL]).mean().items()}},
     }
+    if PIPELINE_STATS.exists():
+        metrics["throughput"] = json.loads(PIPELINE_STATS.read_text())
     with open(args.out, "w") as f:
         json.dump(metrics, f, indent=2)
     print(json.dumps(metrics, indent=2))

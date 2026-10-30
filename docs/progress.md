@@ -53,3 +53,5 @@
   Flat: all 150 give macro-F1 1.0 -> tie-break keeps defaults 0.8/0.3/97pct. Pipeline loads fusion_config.json.
 - 12:22 eval: confusion_a1.png / confusion_fused.png + matrices in metrics.json; status & evidence counts per class.
   Only errors: 2 PORT_SCAN -> BENIGN. A2 corroborates 960/24,000 DOS, ~0 of other attacks.
+- 12:23 eval: override_accuracy added; pipeline writes pipeline_stats.json, eval folds it into metrics.json.
+  Throughput 26,334 flows/s (no-shap). A2 AUC 0.897. Overrides still 0.
