@@ -37,3 +37,5 @@
   Eval acc 1.0000 (2 errors on unseen rows, no id overlap); ECE ~0 both ways. Destination Port = top feature.
 - 12:11 a1: TreeSHAP too slow on loaded box (load ~11; ~1.5ms/row). Fallback: gain importance x capped robust z, top-3 per flow, 2.4s on eval.
   Model cut to 100 trees/31 leaves; eval acc still 1.0000. Next: save model + baseline report.
+- 12:13 a2: IF(100) on 229,647 BENIGN train rows, threshold 0.5653; eval AUC 0.897.
+  Flag rate: BENIGN 2.8%, DOS 4.0%, BF 0.07%, DDOS 0.03%, PS 0%. Time-boxed: 4 A2 boxes in 1 commit.

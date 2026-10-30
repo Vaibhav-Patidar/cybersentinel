@@ -31,10 +31,10 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [ ] `feat(a1): save model and report baseline accuracy + macro-F1`
 
 ## Phase 4 | A2 Anomaly Agent (5:00–5:40, parallel with Phase 3)
-- [ ] `feat(a2): train IsolationForest on BENIGN rows only`
-- [ ] `feat(a2): normalise anomaly score to 0-1 and set 97th pct threshold`
-- [ ] `feat(a2): add robust-z feature evidence (top-3) from benign baseline`
-- [ ] `feat(a2): save model + baseline, report ROC-AUC and per-class flag rate`
+- [x] `feat(a2): train IsolationForest on BENIGN rows only`
+- [x] `feat(a2): normalise anomaly score to 0-1 and set 97th pct threshold`
+- [x] `feat(a2): add robust-z feature evidence (top-3) from benign baseline`
+- [x] `feat(a2): save model + baseline, report ROC-AUC and per-class flag rate`
 
 ## Phase 5 | A3 Evidence Fusion (5:40–6:15)
 - [ ] `feat(a3): implement fusion decision table with status labels`
