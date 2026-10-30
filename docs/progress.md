@@ -23,3 +23,5 @@
   Next: inf->NaN + train medians.
 - 11:26 prep: fit_stats (train medians) + transform (inf->NaN->median).
   Next: drop const/dup cols, float32.
+- 11:26 prep: constant/duplicate cols found on train, dropped everywhere; float32.
+  Next: dedupe train, save parquet + prep_stats.json.

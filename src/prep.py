@@ -22,7 +22,27 @@ def raw_features(df: pd.DataFrame) -> list[str]:
 def fit_stats(train: pd.DataFrame) -> dict:
     feats = raw_features(train)
     x = train[feats].replace([np.inf, -np.inf], np.nan)
-    return {"raw_features": feats, "medians": x.median().fillna(0).astype(float).to_dict()}
+    medians = x.median().fillna(0).astype(float)
+    x = x.fillna(medians)
+
+    constant = [c for c in feats if x[c].nunique() <= 1]
+    seen, duplicate = {}, []
+    for c in feats:
+        if c in constant:
+            continue
+        h = pd.util.hash_pandas_object(x[c], index=False).sum()
+        if h in seen and x[c].equals(x[seen[h]]):
+            duplicate.append(c)
+        else:
+            seen.setdefault(h, c)
+    dropped = set(constant) | set(duplicate)
+    return {
+        "raw_features": feats,
+        "medians": medians.to_dict(),
+        "constant": constant,
+        "duplicate": duplicate,
+        "features": [c for c in feats if c not in dropped],
+    }
 
 
 def transform(df: pd.DataFrame, stats: dict) -> pd.DataFrame:
@@ -30,18 +50,22 @@ def transform(df: pd.DataFrame, stats: dict) -> pd.DataFrame:
     missing = set(feats) - set(df.columns)
     if missing:
         raise KeyError(f"missing features: {sorted(missing)}")
-    out = df.copy()
-    out[feats] = out[feats].replace([np.inf, -np.inf], np.nan).fillna(stats["medians"])
-    return out
+    x = df[feats].replace([np.inf, -np.inf], np.nan).fillna(stats["medians"])
+    x = x[stats["features"]].astype(np.float32)
+    keep = [c for c in df.columns if c in (ID_COL, *PASSTHROUGH)]
+    tail = [LABEL_COL] if LABEL_COL in df else []
+    return pd.concat([df[keep], x, df[tail]], axis=1)
 
 
 def main() -> None:
     train, ev = load(TRAIN_RAW), load(EVAL_RAW)
     stats = fit_stats(train)
     train, ev = transform(train, stats), transform(ev, stats)
+    print(f"constant: {stats['constant']}\nduplicate: {stats['duplicate']}")
     for name, df in (("train", train), ("eval", ev)):
-        n_nan = int(df[stats["raw_features"]].isna().sum().sum())
-        print(f"{name}: {df.shape}, NaN after impute={n_nan}")
+        x = df[stats["features"]]
+        print(f"{name}: {df.shape}, features={x.shape[1]}, NaN={int(x.isna().sum().sum())}, "
+              f"dtypes={set(map(str, x.dtypes))}")
 
 
 if __name__ == "__main__":
