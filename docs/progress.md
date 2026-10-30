@@ -49,3 +49,5 @@
   0 overrides: all 1,685 ANOMALY_ONLY flows stayed BENIGN (top-2 prob 0 < 0.3). Fusion adds nothing on eval yet.
 - 12:20 fix: models were pickled as __main__.ThreatDetector/AnomalyAgent; --train now imports real module.
   Existing models re-saved under src.agents.* (no retrain).
+- 12:21 a3 --tune: 150 configs (conf_t x top2_t x anomaly pct) on train cal slice (64,891 rows), never eval. 35s.
+  Flat: all 150 give macro-F1 1.0 -> tie-break keeps defaults 0.8/0.3/97pct. Pipeline loads fusion_config.json.

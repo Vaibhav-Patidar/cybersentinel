@@ -18,7 +18,7 @@ def run(df: pd.DataFrame, a1: ThreatDetector, a2: AnomalyAgent, shap: bool = Tru
     r1 = a1.predict(df, shap=shap)
     r2 = a2.predict(df)
     merged = pd.concat([r1, r2.drop(columns=[ID_COL])], axis=1)
-    r3 = EvidenceFusion().predict(merged)
+    r3 = EvidenceFusion.from_config().predict(merged)
     keep = [c for c in df.columns if c in (ID_COL, *PASSTHROUGH, LABEL_COL)]
     return pd.concat([df[keep].reset_index(drop=True), merged.drop(columns=[ID_COL]),
                       r3.drop(columns=[ID_COL])], axis=1)
