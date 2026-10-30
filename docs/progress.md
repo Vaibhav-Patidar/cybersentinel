@@ -33,3 +33,5 @@
   Next: predict conf + top-2.
 - 11:31 a1: predict -> record_id, a1_class, a1_conf, a1_top2, a1_top2_prob.
   Raw LGBM probs saturate near 1.0 -> calibration next.
+- 11:34 a1: one-vs-rest isotonic on 15% stratified train holdout; top-2 ties broken by raw probs.
+  Eval acc 1.0000 (2 errors on unseen rows, no id overlap); ECE ~0 both ways. Destination Port = top feature.
