@@ -9,7 +9,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 - [x] `chore: init repo with README, .gitignore, requirements.txt`
 - [x] `docs: add CLAUDE.md, AGENTS.md, Plan.md`
 - [x] `chore: scaffold folder structure (src, scripts, docs, outputs)`
-- [ ] `feat(config): add paths, CLASSES and constants in src/config.py`
+- [x] `feat(config): add paths, CLASSES and constants in src/config.py`
 - [ ] `feat(agents): add base Agent interface with fit/predict`
 
 ## Phase 1 | Data Inspection (4:25–4:35)
