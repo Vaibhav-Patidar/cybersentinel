@@ -21,3 +21,5 @@
   Next: Phase 2 prep.
 - 11:25 prep: load() reads parquet + strips column names.
   Next: inf->NaN + train medians.
+- 11:26 prep: fit_stats (train medians) + transform (inf->NaN->median).
+  Next: drop const/dup cols, float32.

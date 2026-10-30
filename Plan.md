@@ -18,7 +18,7 @@ Rule: every commit must run without breaking what came before. Push after every 
 
 ## Phase 2 | Preprocessing (4:35–5:00)
 - [x] `feat(prep): load train/eval parquet and strip column names`
-- [ ] `feat(prep): replace inf with NaN and impute train medians`
+- [x] `feat(prep): replace inf with NaN and impute train medians`
 - [ ] `feat(prep): drop constant and duplicate columns, cast float32`
 - [ ] `feat(prep): dedupe train only, save processed parquet + prep_stats.json`
 - [ ] `test(prep): assert eval row count and record_id order unchanged`
