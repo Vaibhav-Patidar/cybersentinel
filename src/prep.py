@@ -67,6 +67,16 @@ def dedupe_train(train: pd.DataFrame, stats: dict) -> pd.DataFrame:
     return train
 
 
+def check_eval(raw: pd.DataFrame, clean: pd.DataFrame, stats: dict) -> None:
+    """Eval/hidden rows must never be dropped, reordered or deduped."""
+    assert len(clean) == len(raw), f"row count changed: {len(raw)} -> {len(clean)}"
+    assert (clean[ID_COL].to_numpy() == raw[ID_COL].to_numpy()).all(), "record_id order changed"
+    if LABEL_COL in raw:
+        assert (clean[LABEL_COL].to_numpy() == raw[LABEL_COL].to_numpy()).all(), "labels changed"
+    assert list(clean[stats["features"]].columns) == stats["features"], "feature order changed"
+    assert not clean[stats["features"]].isna().any().any(), "NaN left in features"
+
+
 def main() -> None:
     train, ev = load(TRAIN_RAW), load(EVAL_RAW)
     stats = fit_stats(train)
@@ -78,6 +88,8 @@ def main() -> None:
     train.to_parquet(TRAIN_CLEAN, index=False)
     ev.to_parquet(EVAL_CLEAN, index=False)
     PREP_STATS.write_text(json.dumps(stats, indent=2))
+    check_eval(load(EVAL_RAW), pd.read_parquet(EVAL_CLEAN), stats)
+    print("check_eval: OK (rows, record_id order, labels unchanged)")
 
     print(f"constant: {stats['constant']}\nduplicate: {stats['duplicate']}")
     print(f"train dedupe: {stats['train_rows_raw']} -> {stats['train_rows_deduped']}")

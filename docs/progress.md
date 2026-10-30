@@ -27,3 +27,5 @@
   Next: dedupe train, save parquet + prep_stats.json.
 - 11:26 prep: train deduped on features+label; saves train/eval_clean.parquet + prep_stats.json.
   Next: eval row-count/order test.
+- 11:27 prep: check_eval asserts rows/record_id order/labels unchanged; runs every prep.
+  Phase 2 done: 432,605 train / 114,185 eval, 71 float32 features. Next: Phase 3 A1.
