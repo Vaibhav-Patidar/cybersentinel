@@ -1,0 +1,47 @@
+{
+  "team": "CyberSentinel",
+  "track": 1,
+  "level": 1,
+  "submitted_at": "2026-10-30T12:34:13+00:00",
+  "dataset": "CICIDS2017 eval",
+  "n_flows": 114185,
+  "metrics": {
+    "accuracy": 0.999982,
+    "macro_f1": 0.999983,
+    "per_class_f1": {
+      "BENIGN": 0.999983,
+      "BRUTE_FORCE": 1.0,
+      "DOS": 1.0,
+      "DDOS": 1.0,
+      "PORT_SCAN": 0.999931
+    },
+    "a1_only": {
+      "accuracy": 0.999982,
+      "macro_f1": 0.999983
+    },
+    "unseen_in_train_macro_f1": 0.999974,
+    "override_count": 0,
+    "a2_roc_auc": 0.897383,
+    "throughput_flows_per_sec": 42031.1
+  },
+  "status_counts": {
+    "CORROBORATED": 59283,
+    "CLASSIFIER_ONLY": 53217,
+    "ANOMALY_ONLY": 1685
+  },
+  "policy_counts": {
+    "ALLOW": 58318,
+    "BLOCK": 54182,
+    "REVIEW": 1685
+  },
+  "fusion_thresholds": {
+    "conf_t": 0.8,
+    "top2_t": 0.3,
+    "anomaly_pct": 97
+  },
+  "agents": [
+    "A1 LightGBM threat detector",
+    "A2 IsolationForest anomaly (benign-only)",
+    "A3 rule-based evidence fusion"
+  ]
+}

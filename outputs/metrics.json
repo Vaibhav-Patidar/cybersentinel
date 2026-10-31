@@ -1,0 +1,295 @@
+{
+  "all": {
+    "n": 114185,
+    "a1": {
+      "accuracy": 0.999982,
+      "macro_precision": 0.999993,
+      "macro_recall": 0.999972,
+      "macro_f1": 0.999983,
+      "per_class_precision": {
+        "BENIGN": 0.999967,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 1.0
+      },
+      "per_class_recall": {
+        "BENIGN": 1.0,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999861
+      },
+      "per_class_f1": {
+        "BENIGN": 0.999983,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999931
+      }
+    },
+    "fused": {
+      "accuracy": 0.999982,
+      "macro_precision": 0.999993,
+      "macro_recall": 0.999972,
+      "macro_f1": 0.999983,
+      "per_class_precision": {
+        "BENIGN": 0.999967,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 1.0
+      },
+      "per_class_recall": {
+        "BENIGN": 1.0,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999861
+      },
+      "per_class_f1": {
+        "BENIGN": 0.999983,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999931
+      }
+    },
+    "agreement_rate": 1.0,
+    "override_count": 0,
+    "override_correct": 0,
+    "override_accuracy": null,
+    "override_broke_correct_a1": 0
+  },
+  "unseen_in_train": {
+    "n": 104390,
+    "a1": {
+      "accuracy": 0.999981,
+      "macro_precision": 0.999993,
+      "macro_recall": 0.999954,
+      "macro_f1": 0.999974,
+      "per_class_precision": {
+        "BENIGN": 0.999964,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 1.0
+      },
+      "per_class_recall": {
+        "BENIGN": 1.0,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999771
+      },
+      "per_class_f1": {
+        "BENIGN": 0.999982,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999886
+      }
+    },
+    "fused": {
+      "accuracy": 0.999981,
+      "macro_precision": 0.999993,
+      "macro_recall": 0.999954,
+      "macro_f1": 0.999974,
+      "per_class_precision": {
+        "BENIGN": 0.999964,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 1.0
+      },
+      "per_class_recall": {
+        "BENIGN": 1.0,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999771
+      },
+      "per_class_f1": {
+        "BENIGN": 0.999982,
+        "BRUTE_FORCE": 1.0,
+        "DOS": 1.0,
+        "DDOS": 1.0,
+        "PORT_SCAN": 0.999886
+      }
+    },
+    "agreement_rate": 1.0,
+    "override_count": 0,
+    "override_correct": 0,
+    "override_accuracy": null,
+    "override_broke_correct_a1": 0
+  },
+  "confusion": {
+    "labels": [
+      "BENIGN",
+      "BRUTE_FORCE",
+      "DOS",
+      "DDOS",
+      "PORT_SCAN"
+    ],
+    "a1": [
+      [
+        60001,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1384,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        24000,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        14400,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        0,
+        14398
+      ]
+    ],
+    "fused": [
+      [
+        60001,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1384,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        24000,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        14400,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        0,
+        14398
+      ]
+    ]
+  },
+  "status_counts": {
+    "CORROBORATED": 59283,
+    "CLASSIFIER_ONLY": 53217,
+    "ANOMALY_ONLY": 1685
+  },
+  "evidence_strength_counts": {
+    "MODERATE": 56049,
+    "WEAK": 37737,
+    "STRONG": 20399
+  },
+  "policy_counts": {
+    "ALLOW": 58318,
+    "BLOCK": 54182,
+    "REVIEW": 1685
+  },
+  "status_by_class": {
+    "BENIGN": {
+      "ANOMALY_ONLY": 1685,
+      "CLASSIFIER_ONLY": 0,
+      "CORROBORATED": 58316
+    },
+    "BRUTE_FORCE": {
+      "ANOMALY_ONLY": 0,
+      "CLASSIFIER_ONLY": 1383,
+      "CORROBORATED": 1
+    },
+    "DDOS": {
+      "ANOMALY_ONLY": 0,
+      "CLASSIFIER_ONLY": 14396,
+      "CORROBORATED": 4
+    },
+    "DOS": {
+      "ANOMALY_ONLY": 0,
+      "CLASSIFIER_ONLY": 23040,
+      "CORROBORATED": 960
+    },
+    "PORT_SCAN": {
+      "ANOMALY_ONLY": 0,
+      "CLASSIFIER_ONLY": 14398,
+      "CORROBORATED": 2
+    }
+  },
+  "evidence_strength_by_class": {
+    "BENIGN": {
+      "MODERATE": 55082,
+      "STRONG": 3360,
+      "WEAK": 1559
+    },
+    "BRUTE_FORCE": {
+      "MODERATE": 1,
+      "STRONG": 0,
+      "WEAK": 1383
+    },
+    "DDOS": {
+      "MODERATE": 4,
+      "STRONG": 605,
+      "WEAK": 13791
+    },
+    "DOS": {
+      "MODERATE": 960,
+      "STRONG": 2057,
+      "WEAK": 20983
+    },
+    "PORT_SCAN": {
+      "MODERATE": 2,
+      "STRONG": 14377,
+      "WEAK": 21
+    }
+  },
+  "a2": {
+    "roc_auc_attack_vs_benign": 0.897383,
+    "flag_rate_per_class": {
+      "BENIGN": 0.028083,
+      "BRUTE_FORCE": 0.000723,
+      "DDOS": 0.000278,
+      "DOS": 0.04,
+      "PORT_SCAN": 0.0
+    }
+  },
+  "throughput": {
+    "input": "data/processed/eval_clean.parquet",
+    "rows": 114185,
+    "seconds": 3.763,
+    "flows_per_sec": 30344.5,
+    "shap": true
+  }
+}

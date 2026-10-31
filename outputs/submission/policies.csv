@@ -1,0 +1,5 @@
+policy_id,activated_after_record_id,scope_type,scope_value,expires_after_record_id
+P001,F000014,SOURCE_IP,172.16.0.1,F000064
+P002,F000068,SOURCE_IP,172.16.0.1,F000118
+P003,F000120,SOURCE_IP,172.16.0.1,F000170
+P004,F000171,SOURCE_IP,172.16.0.1,F000200

@@ -1,0 +1,141 @@
+{
+  "params": {
+    "min_group": 2,
+    "conf": 0.95,
+    "ttl": 50
+  },
+  "events": [
+    {
+      "event": "ACTIVATE",
+      "policy_id": "P001",
+      "scope_value": "172.16.0.1",
+      "seq": 14,
+      "record_id": "F000014",
+      "expires_seq": 64,
+      "expires_after_record_id": "F000064",
+      "reason": "BRUTE_FORCE a1_conf 1.000 >= 0.95",
+      "evidence": {
+        "final_class": "BRUTE_FORCE",
+        "status": "CLASSIFIER_ONLY",
+        "a1_conf": 1.0,
+        "a2_score": 0.4544,
+        "a4_group_id": "G001",
+        "a4_member_record_ids": [
+          "F000014"
+        ],
+        "count": 1,
+        "classes": {
+          "BRUTE_FORCE": 1
+        },
+        "mean_a1_conf": 1.0,
+        "max_a2_score": 0.4544
+      }
+    },
+    {
+      "event": "EXPIRE",
+      "policy_id": "P001",
+      "scope_value": "172.16.0.1",
+      "seq": 64,
+      "record_id": "F000064"
+    },
+    {
+      "event": "ACTIVATE",
+      "policy_id": "P002",
+      "scope_value": "172.16.0.1",
+      "seq": 68,
+      "record_id": "F000068",
+      "expires_seq": 118,
+      "expires_after_record_id": "F000118",
+      "reason": "DOS a1_conf 1.000 >= 0.95",
+      "evidence": {
+        "final_class": "DOS",
+        "status": "CLASSIFIER_ONLY",
+        "a1_conf": 1.0,
+        "a2_score": 0.5597,
+        "a4_group_id": "G002",
+        "a4_member_record_ids": [
+          "F000068"
+        ],
+        "count": 1,
+        "classes": {
+          "DOS": 1
+        },
+        "mean_a1_conf": 1.0,
+        "max_a2_score": 0.5597
+      }
+    },
+    {
+      "event": "EXPIRE",
+      "policy_id": "P002",
+      "scope_value": "172.16.0.1",
+      "seq": 118,
+      "record_id": "F000118"
+    },
+    {
+      "event": "ACTIVATE",
+      "policy_id": "P003",
+      "scope_value": "172.16.0.1",
+      "seq": 120,
+      "record_id": "F000120",
+      "expires_seq": 170,
+      "expires_after_record_id": "F000170",
+      "reason": "DDOS a1_conf 1.000 >= 0.95",
+      "evidence": {
+        "final_class": "DDOS",
+        "status": "CLASSIFIER_ONLY",
+        "a1_conf": 1.0,
+        "a2_score": 0.4934,
+        "a4_group_id": "G003",
+        "a4_member_record_ids": [
+          "F000120"
+        ],
+        "count": 1,
+        "classes": {
+          "DDOS": 1
+        },
+        "mean_a1_conf": 1.0,
+        "max_a2_score": 0.4934
+      }
+    },
+    {
+      "event": "EXPIRE",
+      "policy_id": "P003",
+      "scope_value": "172.16.0.1",
+      "seq": 170,
+      "record_id": "F000170"
+    },
+    {
+      "event": "ACTIVATE",
+      "policy_id": "P004",
+      "scope_value": "172.16.0.1",
+      "seq": 171,
+      "record_id": "F000171",
+      "expires_seq": 200,
+      "expires_after_record_id": "F000200",
+      "reason": "PORT_SCAN a1_conf 1.000 >= 0.95",
+      "evidence": {
+        "final_class": "PORT_SCAN",
+        "status": "CLASSIFIER_ONLY",
+        "a1_conf": 1.0,
+        "a2_score": 0.4069,
+        "a4_group_id": "G004",
+        "a4_member_record_ids": [
+          "F000171"
+        ],
+        "count": 1,
+        "classes": {
+          "PORT_SCAN": 1
+        },
+        "mean_a1_conf": 1.0,
+        "max_a2_score": 0.4069
+      }
+    },
+    {
+      "event": "EXPIRE",
+      "policy_id": "P004",
+      "scope_value": "172.16.0.1",
+      "seq": 200,
+      "record_id": "F000200"
+    }
+  ]
+}

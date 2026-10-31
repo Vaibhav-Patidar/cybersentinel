@@ -1,0 +1,22 @@
+{
+  "holdout": "PORT_SCAN",
+  "n_holdout_eval": 14400,
+  "a1_fit_seconds": 10.1,
+  "a1_detect_rate": 0.000556,
+  "fused_detect_rate": 0.000556,
+  "fused_block_or_review_rate": 0.000556,
+  "a2_flag_rate": 0.0,
+  "a1_predicted_as": {
+    "BENIGN": 14392,
+    "DDOS": 8
+  },
+  "fused_predicted_as": {
+    "BENIGN": 14392,
+    "DDOS": 8
+  },
+  "status_counts": {
+    "CORROBORATED": 14392,
+    "CLASSIFIER_ONLY": 8
+  },
+  "benign_false_block_rate": 0.0
+}

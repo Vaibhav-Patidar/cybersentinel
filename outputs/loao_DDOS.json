@@ -1,0 +1,24 @@
+{
+  "holdout": "DDOS",
+  "n_holdout_eval": 14400,
+  "a1_fit_seconds": 9.6,
+  "a1_detect_rate": 0.621111,
+  "fused_detect_rate": 0.62125,
+  "fused_block_or_review_rate": 0.375625,
+  "a2_flag_rate": 0.000278,
+  "a1_predicted_as": {
+    "PORT_SCAN": 8944,
+    "BENIGN": 5456
+  },
+  "fused_predicted_as": {
+    "PORT_SCAN": 8946,
+    "BENIGN": 5454
+  },
+  "status_counts": {
+    "CORROBORATED": 5454,
+    "CLASSIFIER_ONLY": 5405,
+    "CONFLICT": 3537,
+    "TIEBREAK": 4
+  },
+  "benign_false_block_rate": 1.7e-05
+}

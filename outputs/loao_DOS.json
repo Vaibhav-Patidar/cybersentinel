@@ -1,0 +1,23 @@
+{
+  "holdout": "DOS",
+  "n_holdout_eval": 24000,
+  "a1_fit_seconds": 31.8,
+  "a1_detect_rate": 0.000292,
+  "fused_detect_rate": 0.000292,
+  "fused_block_or_review_rate": 0.04,
+  "a2_flag_rate": 0.04,
+  "a1_predicted_as": {
+    "BENIGN": 23993,
+    "PORT_SCAN": 7
+  },
+  "fused_predicted_as": {
+    "BENIGN": 23993,
+    "PORT_SCAN": 7
+  },
+  "status_counts": {
+    "CORROBORATED": 23033,
+    "ANOMALY_ONLY": 960,
+    "CONFLICT": 7
+  },
+  "benign_false_block_rate": 0.0
+}

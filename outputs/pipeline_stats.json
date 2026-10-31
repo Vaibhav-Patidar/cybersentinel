@@ -1,0 +1,7 @@
+{
+  "input": "data/processed/eval_clean.parquet",
+  "rows": 114185,
+  "seconds": 3.763,
+  "flows_per_sec": 30344.5,
+  "shap": true
+}

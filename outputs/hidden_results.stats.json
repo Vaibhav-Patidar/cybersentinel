@@ -1,0 +1,7 @@
+{
+  "input": "data/processed/hidden_clean.parquet",
+  "rows": 200,
+  "seconds": 0.08,
+  "flows_per_sec": 2509.1,
+  "shap": false
+}

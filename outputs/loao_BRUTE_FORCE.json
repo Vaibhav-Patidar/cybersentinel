@@ -1,0 +1,20 @@
+{
+  "holdout": "BRUTE_FORCE",
+  "n_holdout_eval": 1384,
+  "a1_fit_seconds": 36.9,
+  "a1_detect_rate": 0.0,
+  "fused_detect_rate": 0.0,
+  "fused_block_or_review_rate": 0.000723,
+  "a2_flag_rate": 0.000723,
+  "a1_predicted_as": {
+    "BENIGN": 1384
+  },
+  "fused_predicted_as": {
+    "BENIGN": 1384
+  },
+  "status_counts": {
+    "CORROBORATED": 1383,
+    "ANOMALY_ONLY": 1
+  },
+  "benign_false_block_rate": 0.0
+}
