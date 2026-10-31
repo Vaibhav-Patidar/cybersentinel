@@ -81,4 +81,4 @@ class DefenseAgent(Agent):
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         """A5 is stateful across the replay; the ordered loop lives in src.replay."""
         from src.replay import replay
-        return replay(df)[[ID_COL, "a5_triggered", "a5_policy_id", "a5_reason"]]
+        return replay(df)[0][[ID_COL, "a5_triggered", "a5_policy_id", "a5_reason"]]
