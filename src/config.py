@@ -53,3 +53,7 @@ LABEL_COL = "label"
 
 # Level 2 replay
 A4_WINDOW = 20  # A4: past seq positions kept per source_ip
+A5_MIN_GROUP = 2   # A5 trigger: A4 group count >= k
+A5_CONF = 0.95     # A5 trigger: single attack flow with a1_conf >= this
+A5_TTL = 50        # A5 policy lifetime in seq positions (capped at last record)
+POLICY_LOG = OUTPUTS_DIR / "policy_log.json"
