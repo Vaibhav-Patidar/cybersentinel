@@ -91,6 +91,14 @@ Policy Agent (stub, stateful per source_ip replay over A3 verdicts, src/agents/p
   replay_action (ALLOW | BLOCK | REVIEW), replay_reason, ip_strikes
   IP blocklisted after 3 BLOCK verdicts in its last 20 flows; no source_ip -> A3 policy passes through
 
+A4 Temporal Correlation (src/agents/correlation.py, per source_ip, past-only window W=20 seq):
+  a4_group_id (G001.., stable per IP burst), a4_member_record_ids, a4_evidence
+  {count, classes, mean_a1_conf, max_a2_score}. Suspicious = final_class != BENIGN, ALLOWed flows only.
+A5 Adaptive Defense (src/agents/defense.py):
+  a5_triggered, a5_policy_id, a5_reason. Trigger SOURCE_IP policy on an ALLOWed record when IP has no
+  active policy AND (A4 count >= k=2 OR (final_class != BENIGN and a1_conf >= 0.95)).
+  TTL=50 seq (capped at last record); renewal needs a new trigger -> new policy_id. Log -> outputs/policy_log.json.
+
 ## Fusion table
 - attack hi-conf + anomalous  -> CORROBORATED,    A1 class, BLOCK
 - attack hi-conf + normal     -> CLASSIFIER_ONLY, A1 class, BLOCK
@@ -107,6 +115,40 @@ Thresholds grid-searched for macro-F1, saved in fusion_config.json.
 - A2 ROC-AUC attack vs benign, % of each class flagged
 - Throughput (flows/sec for the full pipeline)
 - LOAO: A1 vs fused recall on the held-out attack class
+
+## Level 2 (Day 2): five-agent replay on hidden set
+- Keep A1 (threat), A2 (anomaly), A3 (fusion); add A4 Temporal Correlation + A5 Adaptive Defense.
+- INPUT: data/hidden/Cyber/hidden/records.csv (200 rows, CSV, NO label). Replay order = seq (1..200).
+  README: data/hidden/README.md.
+- Metadata (passthrough + correlation only, NEVER model features): seq, day, time_offset,
+  source_ip, destination_ip, source_port, destination_port, protocol.
+- act_data_pkt_fwd and min_seg_size_forward ARE flow features. Keep them.
+- Do NOT retrain A1/A2; load from models/. Never use future records or labels.
+- Templates (authoritative headers): data/templates/{classification,policies,replay}.csv
+  classification.csv: record_id,predicted_class,anomaly_score,evidence_status
+  policies.csv:       policy_id,activated_after_record_id,scope_type,scope_value,expires_after_record_id
+  replay.csv:         record_id,action,active_policy_id
+- Mapping: predicted_class=final_class, anomaly_score=a2_score, evidence_status=status.
+- Policy fields use record_id values (F000xxx), not seq numbers. scope_type = SOURCE_IP only.
+- Outputs: outputs/hidden_results.parquet, outputs/replay_trace.parquet, outputs/policy_log.json,
+  outputs/submission/{classification,policies,replay}.csv. Validator: scripts/validate_submission.py.
+
+Replay rules:
+1. Process strictly in seq order.
+2. If record's source_ip has an active policy -> BLOCK, active_policy_id = that policy. Skip A4/A5.
+3. Else ALLOW, empty active_policy_id, run A4 then A5; A5 may create a policy for LATER records.
+4. The triggering flow is itself ALLOWed. Policy applies from next seq, through
+   expires_after_record_id inclusive.
+5. classification.csv covers all 200 records incl. blocked ones.
+6. Every record_id exactly once in classification.csv and replay.csv, in seq order.
+
+Commands:
+```
+python -m src.prep --hidden
+python -m src.pipeline --input data/processed/hidden_clean.parquet --out outputs/hidden_results.parquet --no-shap
+python -m src.replay
+python scripts/validate_submission.py
+```
 
 ## Hard rules
 - A2 must NEVER see attack labels.
