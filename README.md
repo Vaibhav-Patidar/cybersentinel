@@ -240,14 +240,49 @@ cybersentinel/
     └── submission/        # Level 2 classification / policies / replay CSVs
 ```
 
-## 🔬 Findings so far
+## 📊 Level 1 results (official eval, 114,185 flows)
 
-- **A1 is near-perfect on eval** (accuracy 1.0000), and stays that way on eval rows that never appear in train.
-  CICIDS2017 is known to be highly separable.
-- **`Destination Port` is A1's strongest feature**, a likely shortcut. A leave-one-attack-out
-  experiment will test how the system copes with an attack type it has never seen.
-- **A2 separates attacks from benign traffic** (ROC-AUC 0.897) without ever seeing an attack label,
-  but at the strict 97th-percentile threshold it flags few attacks, so most fusion decisions lean on A1.
+Submitted on Day 1, placed 2nd on the leaderboard.
+
+| | A1 alone | Fused (A1 + A2 → A3) |
+|---|---|---|
+| Accuracy | 0.999982 | 0.999982 |
+| **Macro-F1** | 0.999983 | **0.999983** |
+| Macro precision / recall | 0.999993 / 0.999972 | 0.999993 / 0.999972 |
+| Errors | 2 (PORT_SCAN → BENIGN) | 2 (PORT_SCAN → BENIGN) |
+| Eval rows unseen in train, macro-F1 | | 0.999974 |
+| Throughput | | ~31–40k flows/s (full pipeline) |
+
+| Class | F1 (fused) | A2 flag rate |
+|---|---|---|
+| BENIGN | 0.999983 | 2.81% |
+| BRUTE_FORCE | 1.000000 | 0.07% |
+| DOS | 1.000000 | 4.00% |
+| DDOS | 1.000000 | 0.03% |
+| PORT_SCAN | 0.999931 | 0.00% |
+
+A2 ROC-AUC, attack vs benign, label-free: **0.897**.
+
+### Leave-one-attack-out
+
+`scripts/loao.py` retrains A1 without one attack class and then measures how much of that class's eval traffic is still caught.
+
+| Held-out class | Flows | A1 detects | Fused detects | A2 flags |
+|---|---|---|---|---|
+| BRUTE_FORCE | 1,384 | 0.0% | 0.0% | 0.07% |
+| DOS | 24,000 | 0.03% | 0.03% | 4.0% |
+| DDOS | 14,400 | 62.1% | 62.1% | 0.03% |
+| PORT_SCAN | 14,400 | 0.06% | 0.06% | 0.0% |
+
+### What this shows
+
+- **On known attacks, A1 is close to perfect.** CICIDS2017 is highly separable. Fusion neither
+  helps nor hurts on eval, and every override is explained.
+- **`Destination Port` is A1's strongest feature**, which is likely a shortcut.
+- **Unseen attacks are the weak spot.** At the strict 97th-percentile threshold, A2 flags almost no
+  attack traffic, so fusion has little independent evidence to recover a held-out class. Most of
+  A2's attack scores sit at 0.48–0.55, just under the 0.565 threshold, so lowering that threshold is the
+  obvious next lever.
 
 ---
 
