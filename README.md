@@ -38,7 +38,7 @@ the smallest class, decides it.
 ## 🧭 Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[(Flows<br/>eval parquet · hidden CSV)] --> P[Prep<br/>clean · impute · 71 features]
     P --> A1[🎯 A1 Threat Detector<br/>LightGBM, calibrated]
     P --> A2[🔍 A2 Anomaly Agent<br/>IsolationForest on BENIGN only]
