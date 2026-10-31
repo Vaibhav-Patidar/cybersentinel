@@ -57,13 +57,29 @@ def write(trace: pd.DataFrame, a5: DefenseAgent) -> None:
     a5.save_log(POLICY_LOG)
 
 
+def summary(trace: pd.DataFrame, a5: DefenseAgent, focus_ip: str = "172.16.0.1") -> None:
+    pd.set_option("display.width", 160)
+    t = trace.assign(predicted_class=trace["final_class"])
+    print("\n== action counts\n", t["action"].value_counts().to_string())
+    print("\n== policies\n", pd.DataFrame(a5.policies)[template_header("policies") + ["activated_seq", "expires_seq"]]
+          .to_string(index=False))
+    print("\n== blocked flows by source_ip\n", t[t["action"] == "BLOCK"]["source_ip"].value_counts().to_string())
+    print("\n== predicted_class per source_ip\n", pd.crosstab(t["source_ip"], t["predicted_class"]).to_string())
+    b = t[t["action"] == "BLOCK"]
+    print("\n== blocked by predicted_class\n", b["predicted_class"].value_counts().to_string())
+    print(f" attack blocked: {(b['predicted_class'] != 'BENIGN').sum()}  BENIGN blocked: {(b['predicted_class'] == 'BENIGN').sum()}")
+    print(f"\n== first 15 replay rows for {focus_ip}\n",
+          t[t["source_ip"] == focus_ip][["seq", ID_COL, "predicted_class", "action", "active_policy_id", "a5_policy_id"]]
+          .head(15).to_string(index=False))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default=str(HIDDEN_RESULTS))
     trace, a5 = replay(pd.read_parquet(ap.parse_args().results))
     write(trace, a5)
     print(f"{len(trace)} records, {len(a5.policies)} policies -> {SUBMISSION_DIR}")
-    print(trace["action"].value_counts().to_dict())
+    summary(trace, a5)
 
 
 if __name__ == "__main__":
