@@ -5,3 +5,5 @@ outputs/
 __pycache__/
 *.pyc
 docs/
+cyber-pack/
+.DS_Store

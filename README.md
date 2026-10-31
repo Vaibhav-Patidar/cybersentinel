@@ -18,7 +18,8 @@
 CyberSentinel classifies network flows into **five classes** using two independent agents:
 a supervised classifier and an anomaly detector that never sees attack labels. A third agent
 fuses their evidence into a final verdict, applies a simulated **ALLOW / BLOCK / REVIEW** policy,
-and writes a human-readable rationale for every flow.
+and writes a human-readable rationale for every flow. An optional **Policy agent** replays
+verdicts per source IP and blocklists repeat offenders.
 
 > Offline replay only. CyberSentinel decides what a firewall *would* do; it is not a live firewall.
 
@@ -43,8 +44,9 @@ flowchart LR
     A1 -- class · confidence · top-2 --> F{⚖️ A3 Evidence Fusion}
     A2 -- score · flag · robust-z --> F
     F --> V[Final class<br/>status · evidence strength]
-    V --> POL[🚦 Policy<br/>ALLOW · BLOCK · REVIEW]
+    V --> POL[🚦 Policy Agent<br/>per-IP replay · strikes]
     POL --> R[(Results +<br/>rationale per flow)]
+    R --> D[📊 Dashboard / PPT]
 ```
 
 ### The agents
@@ -54,9 +56,11 @@ flowchart LR
 | 🎯 | **A1 Threat Detector** | LightGBM, balanced class weights, isotonic calibration | `a1_class`, `a1_conf`, `a1_top2`, `a1_top2_prob`, `a1_shap` |
 | 🔍 | **A2 Anomaly Agent** | IsolationForest fitted on BENIGN traffic only | `a2_score` (0-1), `a2_anomalous`, `a2_evidence` (top-3 robust-z) |
 | ⚖️ | **A3 Evidence Fusion** | Transparent rule table | `final_class`, `status`, `evidence_strength`, `policy`, `rationale` |
+| 🚦 | **Policy Agent** | Stateful per-source-IP replay | `replay_action`, `replay_reason`, `ip_strikes` |
 
 A2 learns only what normal traffic looks like, so it can flag attacks A1 was never trained on.
 When the agents disagree, A3 says so explicitly instead of hiding it.
+The Policy Agent blocklists an IP after 3 BLOCK verdicts in its last 20 flows.
 
 ## ⚖️ How fusion decides
 
@@ -123,27 +127,60 @@ python scripts/inspect.py              # dataset health check
 python -m src.prep                     # clean -> data/processed/
 python -m src.agents.threat --train    # train + save A1
 python -m src.agents.anomaly --train   # train + save A2
+python -m src.agents.fusion --tune     # grid-search fusion thresholds
 python -m src.pipeline --input data/processed/eval_clean.parquet --out outputs/eval_results.parquet
 python -m src.eval --results outputs/eval_results.parquet   # -> outputs/metrics.json
+python -m src.dashboard                # -> outputs/dashboard.html
+python -m src.ppt_assets               # -> outputs/ppt/*.png
+python -m src.submit                   # dry-run; --send to POST to organiser API
+```
+
+### Leave-one-attack-out experiment
+
+```bash
+python scripts/loao.py --holdout PORT_SCAN   # retrain A1 without one class, test fusion recovery
 ```
 
 ## 📁 Project layout
 
 ```text
 cybersentinel/
+├── AGENTS.md              # agent rules & contract
+├── CLAUDE.md              # (copy of AGENTS.md)
+├── README.md
+├── requirements.txt
+├── .gitignore
 ├── src/
-│   ├── config.py          # every path and constant
+│   ├── config.py          # every path and constant (single source of truth)
 │   ├── prep.py            # cleaning, train-only stats
 │   ├── agents/
 │   │   ├── base.py        # Agent interface: fit / predict / save / load
-│   │   ├── threat.py      # 🎯 A1
-│   │   ├── anomaly.py     # 🔍 A2
-│   │   └── fusion.py      # ⚖️ A3
+│   │   ├── threat.py      # 🎯 A1 — LightGBM threat detector
+│   │   ├── anomaly.py     # 🔍 A2 — IsolationForest anomaly agent
+│   │   ├── fusion.py      # ⚖️ A3 — evidence fusion + threshold tuning
+│   │   └── policy.py      # 🚦 per-IP replay policy (strikes & blocklist)
 │   ├── pipeline.py        # A1 + A2 → A3, end to end
-│   └── eval.py            # A1-only vs fused metrics
-├── scripts/inspect.py     # dataset inspection
-├── models/                # saved agents + stats (gitignored)
-└── outputs/               # results + metrics (gitignored)
+│   ├── eval.py            # A1-only vs fused metrics + confusion matrices
+│   ├── viz.py             # shared chart palette + inline-SVG builders
+│   ├── dashboard.py       # self-contained HTML dashboard
+│   ├── ppt_assets.py      # slide-ready 16:9 PNGs for presentation
+│   └── submit.py          # organiser API submission (dry-run by default)
+├── scripts/
+│   ├── inspect.py         # dataset health check
+│   └── loao.py            # leave-one-attack-out experiment
+├── data/                  # gitignored, read-only except processed/
+│   ├── Cyber/training/flows.parquet
+│   ├── Cyber/eval/flows.parquet
+│   └── processed/         # train_clean.parquet, eval_clean.parquet
+├── models/                # gitignored — saved agents + stats
+│   ├── a1_lgbm.joblib, a2_iforest.joblib
+│   ├── prep_stats.json, a2_baseline.json, fusion_config.json
+└── outputs/               # gitignored — results + artefacts
+    ├── eval_results.parquet, metrics.json
+    ├── confusion_a1.png, confusion_fused.png, reliability.png
+    ├── dashboard.html
+    ├── ppt/               # slide-ready PNGs
+    └── submission_payload.json
 ```
 
 ## 🔬 Findings so far
