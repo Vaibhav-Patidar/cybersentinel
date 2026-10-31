@@ -50,3 +50,6 @@ BENIGN = "BENIGN"
 RANDOM_STATE = 42
 ID_COL = "record_id"
 LABEL_COL = "label"
+
+# Level 2 replay
+A4_WINDOW = 20  # A4: past seq positions kept per source_ip
