@@ -2,6 +2,7 @@
 import argparse
 import json
 import time
+from pathlib import Path
 
 import pandas as pd
 
@@ -41,7 +42,8 @@ def main() -> None:
     for c in LIST_COLS:
         out[c] = out[c].map(json.dumps)
     out.to_parquet(args.out, index=False)
-    PIPELINE_STATS.write_text(json.dumps({
+    stats_path = PIPELINE_STATS if args.out == str(EVAL_RESULTS) else Path(args.out).with_suffix(".stats.json")
+    stats_path.write_text(json.dumps({
         "input": args.input, "rows": len(out), "seconds": round(dt, 3),
         "flows_per_sec": round(len(out) / dt, 1), "shap": not args.no_shap}, indent=2))
     print(f"{len(out)} rows in {dt:.1f}s ({len(out) / dt:,.0f} flows/s) -> {args.out}")

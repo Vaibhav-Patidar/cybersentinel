@@ -1,18 +1,20 @@
 """Cleaning: train stats fitted once, applied identically to eval/hidden."""
+import argparse
 import json
 
 import numpy as np
 import pandas as pd
 
-from src.config import (EVAL_CLEAN, EVAL_RAW, ID_COL, LABEL_COL, MODELS_DIR, PREP_STATS,
+from src.config import (EVAL_CLEAN, EVAL_RAW, HIDDEN_CLEAN, HIDDEN_RAW, ID_COL, LABEL_COL, MODELS_DIR, PREP_STATS,
                         PROCESSED_DIR, TRAIN_CLEAN, TRAIN_RAW)
 
 # hidden set adds these for replay; passed through untouched, never features
-PASSTHROUGH = ["source_ip", "destination_ip", "source_port", "destination_port", "protocol", "seq"]
+PASSTHROUGH = ["seq", "day", "time_offset", "source_ip", "destination_ip", "source_port",
+               "destination_port", "protocol"]
 
 
 def load(path) -> pd.DataFrame:
-    df = pd.read_parquet(path)
+    df = pd.read_csv(path) if str(path).endswith(".csv") else pd.read_parquet(path)
     df.columns = df.columns.str.strip()
     return df
 
@@ -77,7 +79,23 @@ def check_eval(raw: pd.DataFrame, clean: pd.DataFrame, stats: dict) -> None:
     assert not clean[stats["features"]].isna().any().any(), "NaN left in features"
 
 
+def prep_hidden() -> None:
+    """Hidden CSV (no label) -> clean parquet using saved TRAIN stats only."""
+    stats = json.loads(PREP_STATS.read_text())
+    raw = load(HIDDEN_RAW)
+    assert raw["seq"].is_monotonic_increasing and raw[ID_COL].is_unique, "hidden must be in seq order"
+    clean = transform(raw, stats)
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    clean.to_parquet(HIDDEN_CLEAN, index=False)
+    check_eval(raw, pd.read_parquet(HIDDEN_CLEAN), stats)
+    print(f"hidden: {clean.shape}, features={len(stats['features'])} -> {HIDDEN_CLEAN}")
+
+
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--hidden", action="store_true", help="prep hidden CSV with saved train stats")
+    if ap.parse_args().hidden:
+        return prep_hidden()
     train, ev = load(TRAIN_RAW), load(EVAL_RAW)
     stats = fit_stats(train)
     train = dedupe_train(transform(train, stats), stats)  # TRAIN only

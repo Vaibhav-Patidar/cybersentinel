@@ -9,9 +9,12 @@ RAW_DIR = DATA_DIR / "Cyber"
 TRAIN_RAW = RAW_DIR / "training" / "flows.parquet"
 EVAL_RAW = RAW_DIR / "eval" / "flows.parquet"
 HIDDEN_DIR = DATA_DIR / "hidden"
+HIDDEN_RAW = HIDDEN_DIR / "Cyber" / "hidden" / "records.csv"
+TEMPLATES_DIR = DATA_DIR / "templates"
 PROCESSED_DIR = DATA_DIR / "processed"
 TRAIN_CLEAN = PROCESSED_DIR / "train_clean.parquet"
 EVAL_CLEAN = PROCESSED_DIR / "eval_clean.parquet"
+HIDDEN_CLEAN = PROCESSED_DIR / "hidden_clean.parquet"
 
 # models
 MODELS_DIR = ROOT / "models"
@@ -35,6 +38,7 @@ SUBMISSION_RESPONSE = OUTPUTS_DIR / "submission_response.json"
 DASHBOARD_HTML = OUTPUTS_DIR / "dashboard.html"
 PPT_DIR = OUTPUTS_DIR / "ppt"
 POLICY_RESULTS = OUTPUTS_DIR / "policy_results.parquet"
+HIDDEN_RESULTS = OUTPUTS_DIR / "hidden_results.parquet"
 
 # docs
 DOCS_DIR = ROOT / "docs"
