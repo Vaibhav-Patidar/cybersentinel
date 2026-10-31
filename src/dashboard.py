@@ -1,4 +1,5 @@
-"""Static dashboard: agent graph, headline metrics, LOAO, confusion, filterable verdict log.
+"""Static dashboard: agent graph, headline metrics, LOAO, confusion, filterable verdict log,
+and the Level 2 replay view (timeline, active policies, blocked vs allowed) when a replay has run.
 
   python -m src.dashboard      # -> outputs/dashboard.html (self-contained, open in a browser)
 """
@@ -7,7 +8,8 @@ from html import escape
 
 import pandas as pd
 
-from src.config import BENIGN, CLASSES, DASHBOARD_HTML, EVAL_RESULTS, LABEL_COL, METRICS, OUTPUTS_DIR
+from src.config import (BENIGN, CLASSES, DASHBOARD_HTML, EVAL_RESULTS, LABEL_COL, METRICS, OUTPUTS_DIR,
+                        POLICY_LOG, REPLAY_TRACE)
 from src.viz import grouped_hbar, heat_table, legend
 
 LOG_COLS = ["record_id", LABEL_COL, "a1_class", "a1_conf", "a2_score", "a2_anomalous",
@@ -56,6 +58,95 @@ def agent_graph(m: dict) -> str:
                f'<text x="745" y="202" text-anchor="middle" class="ns">REVIEW {pol.get("REVIEW", 0):,}</text>')
     svg.append(f'<text x="515" y="170" text-anchor="middle" class="ns">overrides {m["all"]["override_count"]:,}</text>')
     return "".join(svg) + "</svg>"
+
+
+def replay_timeline(t: pd.DataFrame, policies: list[dict]) -> str:
+    """One lane per source IP (most flows first), one dot per flow at its seq; policy windows as bands."""
+    ips = t["source_ip"].value_counts().index.tolist()
+    n, left, lane, top, width = int(t["seq"].max()), 112, 22, 26, 1000
+    pw = width - left - 14
+    x = lambda q: left + (q - 0.5) / n * pw
+    height = top + lane * len(ips) + 44
+    out = [f'<svg viewBox="0 0 {width} {height}" class="chart" role="img" aria-label="replay timeline">']
+    for i, ip in enumerate(ips):
+        y = top + i * lane + lane / 2
+        out.append(f'<text x="{left - 10}" y="{y + 4}" text-anchor="end" class="lbl">{escape(ip)}</text>'
+                   f'<line x1="{left}" x2="{width - 14}" y1="{y}" y2="{y}" class="lane"/>')
+    for p in policies:
+        y = top + ips.index(p["scope_value"]) * lane
+        x0, x1 = x(p["activated_seq"] + 1) - pw / n / 2, x(p["expires_seq"]) + pw / n / 2
+        out.append(f'<g><title>{p["policy_id"]} SOURCE_IP {escape(p["scope_value"])}: after '
+                   f'{p["activated_after_record_id"]} through {p["expires_after_record_id"]} '
+                   f'(seq {p["activated_seq"] + 1}–{p["expires_seq"]})</title>'
+                   f'<rect x="{x0:.1f}" y="{y + 2}" width="{x1 - x0:.1f}" height="{lane - 4}" rx="4" class="band"/>'
+                   f'<text x="{x0 + 4:.1f}" y="{y - 3}" class="ns">{p["policy_id"]}</text></g>')
+    for r in t.itertuples():
+        y = top + ips.index(r.source_ip) * lane + lane / 2
+        attack = r.final_class != BENIGN
+        fill = "var(--s1)" if r.action == "BLOCK" else ("var(--s2)" if attack else "var(--base)")
+        w = max(pw / n - 1.5, 1.5)
+        h = lane - 6 if r.a5_triggered else lane - 10
+        ring = ' stroke="var(--ink)" stroke-width="1.5"' if r.a5_triggered else ""
+        tip = (f"seq {r.seq} · {r.record_id} · {r.source_ip} → {r.destination_ip}:{r.destination_port} · "
+               f"{r.final_class} ({r.status}) · {r.action}" + (f" by {r.active_policy_id}" if r.active_policy_id else "")
+               + (f" · triggered {r.a5_policy_id}" if r.a5_triggered else ""))
+        out.append(f'<g><title>{escape(tip)}</title>'
+                   f'<rect x="{x(r.seq) - pw / n / 2:.1f}" y="{y - lane / 2}" width="{pw / n:.1f}" height="{lane}" fill="transparent"/>'
+                   f'<rect x="{x(r.seq) - w / 2:.1f}" y="{y - h / 2}" width="{w:.1f}" height="{h}" rx="1" fill="{fill}"{ring}/></g>')
+    ya = top + lane * len(ips) + 6
+    for q in [1, *range(25, n + 1, 25)]:
+        out.append(f'<text x="{x(q):.1f}" y="{ya + 14}" text-anchor="middle" class="ns">{q}</text>')
+    out.append(f'<text x="{width - 14}" y="{ya + 28}" text-anchor="end" class="ns">seq →</text>')
+    return "".join(out) + "</svg>"
+
+
+def replay_view() -> str:
+    if not REPLAY_TRACE.exists() or not POLICY_LOG.exists():
+        return ('<section class="card"><h2>Level 2 replay</h2><p class="muted">Run <code>python -m src.replay</code> '
+                'to fill this.</p></section>')
+    t = pd.read_parquet(REPLAY_TRACE).sort_values("seq")
+    events = json.loads(POLICY_LOG.read_text())["events"]
+    pols = [e | {"activated_seq": e["seq"], "activated_after_record_id": e["record_id"]}
+            for e in events if e["event"] == "ACTIVATE"]
+    b = t[t["action"] == "BLOCK"]
+    attack = t["final_class"] != BENIGN
+    kpis = "".join([
+        kpi("Replayed flows", f"{len(t):,}", f'{t["source_ip"].nunique()} source IPs, seq order'),
+        kpi("ALLOW / BLOCK", f'{(t["action"] == "ALLOW").sum()} / {len(b)}', "replay actions"),
+        kpi("Policies", f"{len(pols)}", f'{len({p["scope_value"] for p in pols})} IP(s) · SOURCE_IP · TTL 50'),
+        kpi("Blocked: attack / BENIGN", f'{(b["final_class"] != BENIGN).sum()} / {(b["final_class"] == BENIGN).sum()}',
+            "by predicted class"),
+        kpi("Attack flows let through", f'{(attack & (t["action"] == "ALLOW")).sum()}', "policy triggers are allowed"),
+    ])
+    pol_rows = "".join(
+        f'<tr><td>{p["policy_id"]}</td><td>{escape(p["scope_value"])}</td><td>{p["activated_after_record_id"]}</td>'
+        f'<td>{p["expires_after_record_id"]}</td><td>{p["activated_seq"] + 1}–{p["expires_seq"]}</td>'
+        f'<td>{int((t["active_policy_id"] == p["policy_id"]).sum())}</td><td title="{escape(p['reason'])}">{p["evidence"]["final_class"]} '
+        f'{p["evidence"]["a1_conf"]:.2f}</td></tr>'
+        for p in pols)
+    per_ip = t.assign(attack=attack).groupby("source_ip").agg(
+        flows=("seq", "size"), attack=("attack", "sum"),
+        allow=("action", lambda a: (a == "ALLOW").sum()), block=("action", lambda a: (a == "BLOCK").sum()),
+    ).sort_values("flows", ascending=False)
+    ip_rows = "".join(f'<tr><td>{escape(ip)}</td><td>{r.flows}</td><td>{r.attack}</td><td>{r.allow}</td>'
+                      f'<td>{r.block}</td></tr>' for ip, r in per_ip.iterrows())
+    return f"""<h2 style="margin-top:28px">Level 2: five-agent replay on the hidden set</h2>
+<div class="sub">A1/A2 → A3 per flow, then A4 correlation → A5 adaptive defense in strict seq order.
+A policy blocks its source IP from the next seq through its expiry record.</div>
+<div class="kpis">{kpis}</div>
+<section class="card"><h2>Replay timeline</h2>
+<div class="legend"><span><i style="background:var(--s1)"></i>BLOCK (active policy)</span>
+<span><i style="background:var(--s2)"></i>ALLOW, predicted attack</span>
+<span><i style="background:var(--base)"></i>ALLOW, predicted BENIGN</span>
+<span><i style="background:var(--s2);outline:1.5px solid var(--ink)"></i>policy trigger (taller)</span>
+<span><i style="background:var(--s1);opacity:.18"></i>policy window</span></div>
+<div class="scroll">{replay_timeline(t, pols)}</div></section>
+<div class="grid2">
+<section class="card"><h2>Active policies</h2><div class="scroll"><table class="t"><tr><th>policy</th><th>scope</th>
+<th>after</th><th>expires after</th><th>seq</th><th>blocked</th><th>trigger</th></tr>{pol_rows}</table></div></section>
+<section class="card"><h2>Blocked vs allowed by source IP</h2><div class="scroll"><table class="t"><tr><th>source_ip</th>
+<th>flows</th><th>pred. attack</th><th>ALLOW</th><th>BLOCK</th></tr>{ip_rows}</table></div></section>
+</div>"""
 
 
 def kpi(label: str, value: str, note: str = "") -> str:
@@ -116,7 +207,7 @@ def build() -> str:
         status_head=status_head, status_rows=status_rows,
         n_log=len(log), n_wrong=int((~log["correct"]).sum()),
         opt_status=opts("status"), opt_label=opts(LABEL_COL), opt_policy=opts("policy"),
-        log_json=log_json, benign=BENIGN,
+        log_json=log_json, benign=BENIGN, replay=replay_view(),
     )
 
 
@@ -148,6 +239,7 @@ h1 {{ font-size:26px; margin:0 0 4px; }} h2 {{ font-size:17px; margin:0 0 12px; 
 .node {{ fill:var(--surface); stroke:var(--base); stroke-width:1.5; }}
 .nt {{ fill:var(--ink); font-weight:600; font-size:14px; }} .ns {{ fill:var(--ink2); font-size:11.5px; }}
 .edge {{ stroke:var(--muted); stroke-width:2; }}
+.lane {{ stroke:var(--grid); stroke-width:1; }} .band {{ fill:var(--s1); opacity:.16; }}
 .lbl {{ fill:var(--ink2); font-size:12.5px; }} .val {{ fill:var(--ink); font-size:12px; font-variant-numeric:tabular-nums; }}
 .axis {{ stroke:var(--base); }}
 .legend {{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:8px; color:var(--ink2); font-size:12.5px; }}
@@ -168,7 +260,7 @@ code {{ background:var(--bg); padding:1px 5px; border-radius:5px; }}
 </style></head>
 <body><main>
 <h1>CyberSentinel</h1>
-<div class="sub">Multi-agent intrusion detection on CICIDS2017 eval. Offline replay; policy is simulated.</div>
+<div class="sub">Multi-agent intrusion detection on CICIDS2017. Level 1: eval set. Level 2: hidden-set replay. Offline; policy is simulated.</div>
 
 <div class="kpis">{kpis}</div>
 
@@ -190,6 +282,9 @@ code {{ background:var(--bg); padding:1px 5px; border-radius:5px; }}
 <section class="card"><h2>Confusion: fused</h2><div class="scroll">{cm_fused}</div></section>
 </div>
 
+{replay}
+
+<h2 style="margin-top:28px">Level 1 verdict log (eval)</h2>
 <section class="card"><h2>Verdict log</h2>
 <p class="muted">{n_log} sampled flows: every misclassified flow ({n_wrong}) plus a stratified sample per status.</p>
 <div class="filters">
