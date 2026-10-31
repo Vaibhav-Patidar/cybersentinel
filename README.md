@@ -39,15 +39,28 @@ the smallest class, decides it.
 
 ```mermaid
 flowchart LR
-    A[(Flow parquet)] --> P[Prep<br/>clean · impute · 71 features]
+    A[(Flows<br/>eval parquet · hidden CSV)] --> P[Prep<br/>clean · impute · 71 features]
     P --> A1[🎯 A1 Threat Detector<br/>LightGBM, calibrated]
     P --> A2[🔍 A2 Anomaly Agent<br/>IsolationForest on BENIGN only]
     A1 -- class · confidence · top-2 --> F{⚖️ A3 Evidence Fusion}
     A2 -- score · flag · robust-z --> F
     F --> V[Final class<br/>status · evidence strength]
-    V --> POL[🚦 Policy Agent<br/>per-IP replay · strikes]
+    V -- Level 1 --> POL[🚦 Policy Agent<br/>per-IP replay · strikes]
     POL --> R[(Results +<br/>rationale per flow)]
     R --> D[📊 Dashboard / PPT]
+
+    V -- Level 2 · strict seq order --> C{Source IP has an<br/>active policy?}
+    subgraph L2 [Level 2 replay]
+        C -- yes --> B[⛔ BLOCK<br/>cite policy_id · skip A4/A5]
+        C -- no --> AL[✅ ALLOW]
+        AL --> A4[🧩 A4 Temporal Correlation<br/>groups this IP's suspicious flows<br/>in the last 20 seq · past only]
+        A4 -- group · count · classes --> A5[🛡️ A5 Adaptive Defense<br/>trigger if count ≥ 2 or<br/>attack with a1_conf ≥ 0.95]
+        A5 -- new SOURCE_IP policy<br/>seq+1 … seq+50, then expires --> PS[(Active policies)]
+        PS -.-> C
+    end
+    B --> S[(classification · policies ·<br/>replay CSVs + trace)]
+    AL --> S
+    S --> D
 ```
 
 ### The agents
@@ -58,10 +71,14 @@ flowchart LR
 | 🔍 | **A2 Anomaly Agent** | IsolationForest fitted on BENIGN traffic only | `a2_score` (0-1), `a2_anomalous`, `a2_evidence` (top-3 robust-z) |
 | ⚖️ | **A3 Evidence Fusion** | Transparent rule table | `final_class`, `status`, `evidence_strength`, `policy`, `rationale` |
 | 🚦 | **Policy Agent** | Stateful per-source-IP replay | `replay_action`, `replay_reason`, `ip_strikes` |
+| 🧩 | **A4 Temporal Correlation** (Level 2) | Per-IP, past-only window over ALLOWed suspicious flows | `a4_group_id`, `a4_member_record_ids`, `a4_evidence` |
+| 🛡️ | **A5 Adaptive Defense** (Level 2) | Rule-based trigger · TTL expiry · renewal | `a5_triggered`, `a5_policy_id`, `a5_reason`, plus `policy_log.json` |
 
 A2 learns only what normal traffic looks like, so it can flag attacks A1 was never trained on.
 When the agents disagree, A3 says so explicitly instead of hiding it.
 The Policy Agent blocklists an IP after 3 BLOCK verdicts in its last 20 flows.
+In Level 2, A4 links a source IP's recent suspicious flows into a group, and A5 turns that evidence
+into an expiring SOURCE_IP block that applies only to later records.
 
 ## ⚖️ How fusion decides
 
