@@ -175,6 +175,8 @@ python -m src.prep --hidden
 python -m src.pipeline --input data/processed/hidden_clean.parquet --out outputs/hidden_results.parquet --no-shap
 python -m src.replay                       # -> outputs/submission/{classification,policies,replay}.csv
 python scripts/validate_submission.py      # template headers + replay rules, exits 1 on any failure
+python -m src.trace --ip 172.16.0.1        # -> outputs/trace/trace_172.16.0.1.{md,json}
+python -m src.dashboard                    # dashboard now includes the replay view
 ```
 
 ### Hidden-set result
@@ -190,6 +192,47 @@ python scripts/validate_submission.py      # template headers + replay rules, ex
 `172.16.0.1` sends 100 of the 200 flows, and all 100 are classified as attacks
 (DOS 40 · DDOS 24 · PORT_SCAN 24 · BRUTE_FORCE 12). The 13 internal `192.168.10.x` hosts are
 entirely BENIGN, so no internal host is ever blocked.
+
+### 🚶 Five-agent walkthrough (real hidden-set records)
+
+**1. An internal host, F000001 (seq 1): `192.168.10.12 → 192.168.10.3:53`**
+- 🎯 **A1:** BENIGN, confidence 1.00.
+- 🔍 **A2:** score 0.317, normal.
+- ⚖️ **A3:** `CORROBORATED: A1 says BENIGN (1.00), A2 normal (score 0.317, top Bwd Packets/s) -> BENIGN, ALLOW`
+- 🧩 **A4:** the source IP has no suspicious flows in its last 20 seq positions, so count is 0 and there is no group.
+- 🛡️ **A5:** nothing to trigger. **Replay: ALLOW.**
+
+**2. The attacker's first flow, F000014 (seq 14): `172.16.0.1 → 192.168.10.50:22`**
+- 🎯 **A1:** BRUTE_FORCE, confidence 1.00.
+- 🔍 **A2:** score 0.454, under the threshold. Its strongest deviations are `Fwd IAT Min` z=12.9 and `PSH Flag Count` z=7.8.
+- ⚖️ **A3:** `CLASSIFIER_ONLY ... -> BRUTE_FORCE, BLOCK`. The classifier is confident and the anomaly agent does not object.
+- 🧩 **A4:** opens group **G001** for `172.16.0.1` with members [F000014].
+- 🛡️ **A5:** the IP has no active policy and the flow is an attack with a1_conf 1.00 ≥ 0.95, so it activates
+  **P001**: SOURCE_IP `172.16.0.1`, after F000014, expires after F000064 (seq 64).
+- **Replay: ALLOW.** The triggering flow itself passes; the policy only binds later records.
+
+**3. The next attacker flow, F000018 (seq 18): BRUTE_FORCE to port 21**
+- An active policy is checked before anything else: P001 covers seq 15–64, so the flow is **BLOCKed and cites P001**.
+- A4 and A5 are skipped. A1–A3 still classify the flow, so it appears in `classification.csv`.
+
+**4. Expiry and renewal, F000068 (seq 68): DOS to port 80**
+- P001 expired after seq 64, and the attacker sent nothing between seq 59 and 67, so this flow is evaluated afresh.
+- A4 opens a new group **G002**. Blocked flows never enter A4, so the old window has emptied.
+- A5 issues **P002** (seq 69–118). It is a new policy_id, never an overlapping one.
+- **Replay: ALLOW.** The same happens again at seq 120 (P003) and seq 171 (P004).
+
+`outputs/trace/trace_172.16.0.1.md` has this chain for every one of the IP's 100 records.
+
+### Trade-offs and limits
+
+- **Four attacker flows are allowed**, one per policy, because the rules make each trigger pass. A longer TTL
+  would cut this to one, at the cost of holding a block longer on an IP that may have gone quiet.
+- **Source-IP scope blocks everything from that IP.** That costs nothing here, since every flow from
+  `172.16.0.1` is predicted as an attack and no internal host is ever blocked. On mixed traffic it would
+  block benign flows too, so we report blocked flows by predicted class.
+- **The A4 "count ≥ 2" rule never fired.** A1 was always confident enough to trigger on a single flow.
+  The correlation path is the backstop for low-confidence attacks.
+- **A2 rarely corroborates** on this set (A3 status: 99 CLASSIFIER_ONLY, 98 CORROBORATED, 3 ANOMALY_ONLY), which matches its Level 1 behaviour.
 
 ## 📁 Project layout
 
@@ -213,6 +256,7 @@ cybersentinel/
 │   │   └── policy.py      # 🚦 per-IP replay policy (strikes & blocklist)
 │   ├── pipeline.py        # A1 + A2 → A3, end to end
 │   ├── replay.py          # Level 2 ordered replay → submission CSVs
+│   ├── trace.py           # per-record A1→A5 evidence trace for one IP
 │   ├── eval.py            # A1-only vs fused metrics + confusion matrices
 │   ├── viz.py             # shared chart palette + inline-SVG builders
 │   ├── dashboard.py       # self-contained HTML dashboard
@@ -237,6 +281,7 @@ cybersentinel/
     ├── ppt/               # slide-ready PNGs
     ├── submission_payload.json
     ├── hidden_results.parquet, replay_trace.parquet, policy_log.json
+    ├── trace/             # trace_<ip>.md / .json
     └── submission/        # Level 2 classification / policies / replay CSVs
 ```
 
